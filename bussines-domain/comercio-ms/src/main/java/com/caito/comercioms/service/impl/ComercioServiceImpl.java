@@ -20,6 +20,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * @Author: caito Vilas
+ */
+
 @Service
 @Slf4j
 public class ComercioServiceImpl implements ComercioService {
@@ -35,6 +39,7 @@ public class ComercioServiceImpl implements ComercioService {
         log.info("validando datos...");
         this.validarComercio(dto);
         log.info("datos ok");
+        log.info("guardando comercio...");
         Comercio comercio = this.armarComercio(dto);
         return comercioMapper.comerdioToComercioDTO(comercioRepository.save(comercio));
     }
