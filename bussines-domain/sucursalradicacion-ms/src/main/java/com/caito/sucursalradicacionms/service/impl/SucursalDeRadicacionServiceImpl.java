@@ -1,6 +1,7 @@
 package com.caito.sucursalradicacionms.service.impl;
 
 import com.caito.sucursalradicacionms.constants.ErrorMsg;
+import com.caito.sucursalradicacionms.dto.PageableResponseDTO;
 import com.caito.sucursalradicacionms.dto.SucursalDeRadicacionDTO;
 import com.caito.sucursalradicacionms.dto.SucursalDeRadicacionNuevaDTO;
 import com.caito.sucursalradicacionms.entity.SucursalDeRadicacion;
@@ -12,7 +13,12 @@ import com.caito.sucursalradicacionms.repository.SucursalDeRadicacionRepository;
 import com.caito.sucursalradicacionms.service.contract.SucursalDeRadicacionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @Author: caito Vilas
@@ -62,6 +68,34 @@ public class SucursalDeRadicacionServiceImpl implements SucursalDeRadicacionServ
                     throw new NotFoundException(ErrorMsg.SUC_NOT_FOUND);
                 });
         return sucursalDeRadicacionMapper.sucTosucDTO(sucursalDeRadicacion);
+    }
+
+    @Override
+    public List<SucursalDeRadicacionDTO> getAll() {
+        log.info("inicio servicio ver todas las sucursales de radicacion");
+        log.info("buscar sucursales...");
+        return sucursalDeRadicacionMapper.sucListToSucDTOList(sucursalDeRadicacionRepository
+                .findAll());
+    }
+
+    @Override
+    public PageableResponseDTO<SucursalDeRadicacionDTO> getAllPaginado(int page, int size) {
+        log.info("inicio servicio mostrar sucursales de radicacion paginado");
+        if (page <= 0){
+            log.error(ErrorMsg.PAGE_GREATHER_ZERO);
+            throw new BadRequestException(ErrorMsg.PAGE_GREATHER_ZERO);
+        }
+        log.info("buscando sucursales...");
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<SucursalDeRadicacion> s = sucursalDeRadicacionRepository.findAll(pageable);
+        List<SucursalDeRadicacionDTO> sucursales = sucursalDeRadicacionMapper
+                .sucListToSucDTOList(s.getContent());
+        PageableResponseDTO<SucursalDeRadicacionDTO> response = new PageableResponseDTO<>();
+        response.setPage(s.getNumber() + 1);
+        response.setResults(s.getTotalElements());
+        response.setTotalPages(s.getTotalPages());
+        response.setContent(sucursales);
+        return response;
     }
 
     private void validandoSucursalDeRadicacion(SucursalDeRadicacionNuevaDTO dto) {

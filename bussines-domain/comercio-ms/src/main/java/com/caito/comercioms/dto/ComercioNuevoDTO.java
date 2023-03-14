@@ -27,4 +27,6 @@ public class ComercioNuevoDTO {
     private String cuit;
     @Schema(name = "telefono", required = false, example = "1167381033")
     private String telefono;
+    @Schema(name = "sucursalRadicacionId", required = true, example = "1")
+    private Long sucursalRadicacionId;
 }

@@ -4,6 +4,7 @@ import com.caito.comercioms.constants.ErrorMsg;
 import com.caito.comercioms.dto.ComercioDTO;
 import com.caito.comercioms.dto.ComercioNuevoDTO;
 import com.caito.comercioms.dto.PagebleResponseDTO;
+import com.caito.comercioms.dto.SucursalDeRadicacionDTO;
 import com.caito.comercioms.entity.Comercio;
 import com.caito.comercioms.enums.EstadoComercio;
 import com.caito.comercioms.exceptions.BadRequestException;
@@ -17,7 +18,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,6 +35,8 @@ public class ComercioServiceImpl implements ComercioService {
     private ComercioRepository comercioRepository;
     @Autowired
     private ComercioMapper comercioMapper;
+    @Autowired
+    private RestTemplate restTemplate;
 
 
     @Override
@@ -41,7 +47,9 @@ public class ComercioServiceImpl implements ComercioService {
         log.info("datos ok");
         log.info("guardando comercio...");
         Comercio comercio = this.armarComercio(dto);
-        return comercioMapper.comerdioToComercioDTO(comercioRepository.save(comercio));
+        ComercioDTO response = comercioMapper.comerdioToComercioDTO(comercioRepository.save(comercio));
+        this.setearSucursal(response, comercio.getSucursalRadicacionId());
+        return response;
     }
 
 
@@ -54,8 +62,12 @@ public class ComercioServiceImpl implements ComercioService {
             log.error(ErrorMsg.COMERCIO_NOT_FOUND);
             throw new NotFoundException(ErrorMsg.COMERCIO_NOT_FOUND);
         });
-        return comercioMapper.comerdioToComercioDTO(comercio);
+        ComercioDTO response = comercioMapper.comerdioToComercioDTO(comercio);
+        this.setearSucursal(response, comercio.getSucursalRadicacionId());
+        return response;
     }
+
+
 
     @Override
     public PagebleResponseDTO<ComercioDTO> getAllPaginado(int page, int size) {
@@ -67,11 +79,16 @@ public class ComercioServiceImpl implements ComercioService {
         log.info("buscando comercios...");
         Pageable pageable = PageRequest.of(page - 1, size);
         Page<Comercio> c = comercioRepository.findAll(pageable);
-        List<ComercioDTO> comercios = comercioMapper.comercioListToComercioDTOList(c.getContent());
+        List<ComercioDTO> comercios = new ArrayList<>();
         PagebleResponseDTO<ComercioDTO> response = new PagebleResponseDTO<>();
         response.setPage(c.getNumber() + 1);
         response.setResults(c.getTotalElements());
         response.setTotalPages(c.getTotalPages());
+        c.getContent().stream().forEach(comercio -> {
+            ComercioDTO comercioResponse = comercioMapper.comerdioToComercioDTO(comercio);
+            this.setearSucursal(comercioResponse, comercio.getSucursalRadicacionId());
+            comercios.add(comercioResponse);
+        });
         response.setContent(comercios);
         return response;
     }
@@ -98,6 +115,21 @@ public class ComercioServiceImpl implements ComercioService {
         comercio.setCuit(dto.getCuit());
         comercio.setTelefono(dto.getTelefono());
         comercio.setEstadoComercio(EstadoComercio.DOCUMENTACION_PENDIENTE);
+        comercio.setSucursalRadicacionId(dto.getSucursalRadicacionId());
         return comercio;
+    }
+
+    private void setearSucursal(ComercioDTO response, Long sucursalRdicacionId) {
+        log.info("inicio servicio externo de busqueda de sucursal de radicacion del comercio");
+        log.info("buscando sucursal...");
+        String url = "http://localhost:8092//api/v1/cuenta-comercio/sucursales-radicacion/"
+                + sucursalRdicacionId;
+        try {
+            log.info("llamando url: " + url);
+            SucursalDeRadicacionDTO sucursal = restTemplate.getForObject(url, SucursalDeRadicacionDTO.class);
+            response.setSucursalDeRadicacion(sucursal);
+        }catch (ResourceAccessException e){
+            log.error("el servicio de sucursal de radicacion no responde");
+        }
     }
 }

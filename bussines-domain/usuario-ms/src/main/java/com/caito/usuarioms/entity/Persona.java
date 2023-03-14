@@ -1,7 +1,5 @@
-package com.caito.comercioms.entity;
+package com.caito.usuarioms.entity;
 
-import com.caito.comercioms.enums.Categoria;
-import com.caito.comercioms.enums.EstadoComercio;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
@@ -11,32 +9,31 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * @Author: caito Vilas
+ */
+
 @Entity
-@Table(name = "comercios")
-@SQLDelete(sql = "UPDATE comercios SET deleted=true WHERE id=?")
+@Table(name = "personas")
+@SQLDelete(sql = "UPDATE personas SET deleted=true WHERE id=?")
 @Where(clause = "deleted=false")
 @Data
-public class Comercio {
+public class Persona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(length = 70)
-    private String razonSocial;
+    @Column(length = 30)
+    private String name;
+    @Column(length = 30)
+    private String surname;
+    @Column(length = 8)
+    private String dni;
     private String domicilio;
-    @Column(length = 70)
     private String localidad;
-    @Column(length = 50)
     private String provincia;
+    private String telefono;
     @Column(length = 70)
     private String email;
-    @Enumerated(EnumType.STRING)
-    private Categoria categoria;
-    @Column(length = 15)
-    private String cuit;
-    private String telefono;
-    @Enumerated(EnumType.STRING)
-    private EstadoComercio estadoComercio;
-    private Long sucursalRadicacionId;
     @CreationTimestamp
     private LocalDateTime created;
     @UpdateTimestamp

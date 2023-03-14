@@ -34,6 +34,8 @@ public class ComercioDTO {
     private String telefono;
     @Schema(name = "estadoComercio", example = "DOCUMENTACION_PRESENTADA")
     private EstadoComercio estadoComercio;
+    @Schema(name = "sucursalDeRadicacion")
+    private SucursalDeRadicacionDTO sucursalDeRadicacion;
     @Schema(name = "created")
     private LocalDateTime created;
     @Schema(name = "updated")
