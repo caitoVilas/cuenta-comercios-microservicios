@@ -36,6 +36,7 @@ public class Comercio {
     private String telefono;
     @Enumerated(EnumType.STRING)
     private EstadoComercio estadoComercio;
+    private Long sucursalRadicacionId;
     @CreationTimestamp
     private LocalDateTime created;
     @UpdateTimestamp
